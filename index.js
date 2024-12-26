@@ -5,7 +5,9 @@ const path = require('path');
 const fs = require('fs'); 
 const { spawnSync } = require('child_process');
 
-const dir = "./proxy_host";
+const dir = process.env.PROXY_HOST_DIR || "./proxy_host"; // 預設為 ./proxy_host
+const WWWs = JSON.parse(process.env.WWW || '["www"]');
+
 let skip;
 fs.watch(dir, (eventType, filename) => {
   if (new Date().getTime() < skip) { return; }
@@ -103,15 +105,19 @@ const main = () => {
       }
 
       const app = express();
-      const d_static = path.join(__dirname, `./www/${host.dir}`);
-      app.use(express.static(d_static));
-      const server = app.listen(host.port);
-      running[host.dir] = {
-        "port": host.port,
-        "root": d_static,
-      }
-      for (const check of ["index.html"]) {
-        running[host.dir][check] = fs.existsSync(`${d_static}/${check}`);
+      for (const www of WWWs) {
+        const d_static = path.join(__dirname, `./www/${host.dir}`);
+	if (!fs.existsSync(d_static)) { continue; }
+        app.use(express.static(d_static));
+	const server = app.listen(host.port);
+	running[host.dir] = {
+	  "port": host.port,
+	  "root": d_static,
+	}
+	for (const check of ["index.html"]) {
+	  running[host.dir][check] = fs.existsSync(`${d_static}/${check}`);
+	}
+	break;
       }
     }
     catch(ex) {
