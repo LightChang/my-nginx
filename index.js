@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs'); 
 const { spawnSync } = require('child_process');
 
-const dir = process.env.PROXY_HOST_DIR || "./proxy_host"; // 預設為 ./proxy_host
+const dir = process.env.PROXY_HOST_DIR || "./data/nginx/proxy_host";
 const WWWs = JSON.parse(process.env.WWW || '["www"]');
 
 let skip;
